@@ -2,6 +2,7 @@ const path = require('path')
 const http = require('http')
 const express = require('express')
 const socketio = require('socket.io')
+const { log } = require('console')
 
 const app = express()
 const server = http.createServer(app)
@@ -16,10 +17,19 @@ io.on('connection', (socket) => {
   console.log('New Web Socket connection')
 
   socket.emit('message', 'Welcome!')
-
-  socket.on('sendMessage', (message) => {
+  socket.broadcast.emit('message', 'A new user has joined!') // emits to every connected client but the current one
+  
+  socket.on('sendMessage', (message) => { 
     io.emit('message', message)
-  }) 
+  })
+
+  socket.on('sendLocation', (location) => {
+    io.emit('message', `https://google.com/maps?=${location.latitude},${location.longitude}`)
+  })
+
+  socket.on('disconnect', () => {
+    io.emit('message', 'A user has left!')
+  })
 })
 
 server.listen(port, () => {
